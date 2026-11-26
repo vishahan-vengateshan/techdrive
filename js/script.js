@@ -428,7 +428,7 @@
   if (!form) return;
 
   // Recipient of every enquiry. Change it here if the address ever changes.
-  const TO_EMAIL = 'info@evergreentechdrive.com';
+  const TO_EMAIL = 'info@evergreentechdrives.com';
 
   const status = document.getElementById('form-status');
   function say(text, isError) {
