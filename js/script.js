@@ -422,19 +422,13 @@
 })();
 
 
-// ---- Google Forms bridge (using your real IDs) ----
-(function setupGoogleFormBridge() {
+// ---- Enquiry form -> opens the visitor's email app (mailto:) ----
+(function setupMailtoEnquiry() {
   const form = document.getElementById('contact-form');
   if (!form) return;
 
-  const ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSfm4KqSHKhxAMI6A2FLNHqJ-H_JCZ4NBdsup3XXJDeLKvyGig/formResponse';
-
-  const map = {
-    name:    'entry.511196757',
-    mobile:  'entry.1678160039',
-    email:   'entry.1408178537',
-    message: 'entry.850678214'
-  };
+  // Recipient of every enquiry. Change it here if the address ever changes.
+  const TO_EMAIL = 'info@evergreentechdrive.in';
 
   const status = document.getElementById('form-status');
   function say(text, isError) {
@@ -443,75 +437,47 @@
     status.classList.toggle('is-error', !!isError);
   }
 
-  // Optional honeypot
-  let hp = form.querySelector('input[name="company"]');
-  if (!hp) {
-    hp = document.createElement('input');
-    hp.type = 'text';
-    hp.name = 'company';
-    hp.autocomplete = 'off';
-    hp.tabIndex = -1;
-    hp.setAttribute('aria-hidden', 'true');
-    hp.style.position = 'absolute';
-    hp.style.left = '-9999px';
-    form.appendChild(hp);
+  // Product names are added to the message as "Enquiry about: <name> (<category> > <sub>)"
+  // when someone clicks "Enquire about this product", so read them back from there.
+  function productNames(message) {
+    const names = [];
+    const re = /Enquiry about:\s*(.+?)\s*\(/g;
+    let m;
+    while ((m = re.exec(message))) {
+      if (names.indexOf(m[1]) === -1) names.push(m[1]);
+    }
+    return names;
   }
 
   form.addEventListener('submit', function (e) {
     if (!form.checkValidity()) return; // let the browser show its validation messages
     e.preventDefault();
 
-    if (hp && hp.value) { say('Submission blocked.', true); return; }
-
     const fd = new FormData(form);
-    const payload = new FormData();
-    payload.append(map.name,    (fd.get('name') || '').toString().trim());
-    payload.append(map.mobile,  (fd.get('mobile') || '').toString().trim());
-    payload.append(map.email,   (fd.get('email') || '').toString().trim());
-    payload.append(map.message, (fd.get('message') || '').toString().trim());
+    const name    = (fd.get('name') || '').toString().trim();
+    const mobile  = (fd.get('mobile') || '').toString().trim();
+    const email   = (fd.get('email') || '').toString().trim();
+    const message = (fd.get('message') || '').toString().trim();
 
-    const btn = form.querySelector('button[type="submit"]');
-    const prev = btn ? btn.innerHTML : '';
-    if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
-    say('');
+    const products = productNames(message);
+    const subject = products.length
+      ? 'Enquiry: ' + products.join(', ')
+      : 'Website enquiry from ' + name;
 
-    const iframe = document.createElement('iframe');
-    iframe.name = 'gform_iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
+    const body = [
+      'Name: ' + name,
+      'Mobile: ' + (mobile || '-'),
+      'Email: ' + email,
+      '',
+      'Message:',
+      message
+    ].join('\r\n');
 
-    const ghost = document.createElement('form');
-    ghost.action = ACTION;
-    ghost.method = 'POST';
-    ghost.target = 'gform_iframe';
-    ghost.style.display = 'none';
+    const url = 'mailto:' + TO_EMAIL +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
 
-    for (const [k, v] of payload.entries()) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = k;
-      input.value = v;
-      ghost.appendChild(input);
-    }
-
-    document.body.appendChild(ghost);
-
-    let done = false;
-    const cleanup = () => {
-      if (done) return;
-      done = true;
-      ghost.remove();
-      iframe.remove();
-      if (btn) { btn.disabled = false; btn.innerHTML = prev; }
-      say('Thank you for connecting. We will get back to you shortly.');
-      form.reset();
-    };
-
-    iframe.addEventListener('load', cleanup);
-    ghost.submit();
-
-    setTimeout(cleanup, 2000);
+    window.location.href = url;
+    say('Opening your email app. Please press Send there to complete your enquiry.');
   });
 })();
-
-

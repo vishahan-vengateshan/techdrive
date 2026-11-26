@@ -12,7 +12,7 @@
     document.documentElement.classList.add('js');
     try {
       var saved = localStorage.getItem('etd-theme');
-      var dark = saved ? saved === 'dark' : true;   /* dark mode is the default */
+      var dark = saved ? saved === 'dark' : false;  /* light mode is the default */
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
     } catch (e) {}
   })();
@@ -278,7 +278,7 @@
           <h2>Let's power progress <em>together.</em></h2>
           <dl class="cells">
             <div><dt>Phone</dt><dd><a href="tel:+919092097887">+91 90920 97887</a></dd></div>
-            <div><dt>Email</dt><dd><a href="mailto:info@evergreentechdrive.com">info@evergreentechdrive.com</a></dd></div>
+            <div><dt>Email</dt><dd><a href="mailto:info@evergreentechdrive.in">info@evergreentechdrive.in</a></dd></div>
             <div class="wide"><dt>Address</dt><dd>Evergreen TechDrive, Mathura Apartments, 16/10,<br>Gopalakrishnan Street, Secretariat Colony, Guindy,<br>Chennai - 600088, Tamil Nadu, India</dd></div>
           </dl>
           <div class="map-wrap">
